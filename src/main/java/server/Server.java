@@ -16,14 +16,24 @@ import java.util.List;
 
 import server.models.Course;
 import server.models.RegistrationForm;
+
 /**
-
-La classe Server fournit une implémentation d'un serveur pour communiquer avec des clients.
-
-Le serveur est capable de traiter des commandes pour enregistrer des formulaires d'inscription et charger des informations sur les cours d'une session spécifique.
-
-Il utilise des {@code EventHandler} pour gérer les événements et communiquer avec les clients.
-*/
+ * 
+ * La classe Server fournit une implémentation d'un serveur
+ * pour communiquer avec des clients.
+ * 
+ * Le serveur est capable de traiter des commandes pour enregistrer des
+ * formulaires
+ * d'inscription et charger des informations sur les cours d'une session
+ * spécifique.
+ * 
+ * à un serveur pour charger la liste des cours disponibles, de sélectionner un
+ * cours,
+ * 
+ * Il utilise des {@code EventHandler} pour gérer les événements et communiquer
+ * avec les
+ * clients.
+ */
 
 public class Server {
 
@@ -162,9 +172,11 @@ public class Server {
     /**
      * Lire un fichier texte contenant des informations sur les cours et les
      * transforme en liste d'objets 'Course'.
+     * 
      * La méthode filtre les cours par la session spécifiée en argument.
      * Ensuite, elle renvoie la liste des cours pour une session au client en
      * utilisant l'objet 'objectOutputStream'.
+     * 
      * La méthode gère les exceptions si une erreur se produit lors de la lecture du
      * fichier ou de l'écriture de l'objet dans le flux.
      * 
@@ -181,7 +193,7 @@ public class Server {
             String line;
 
             while ((line = br.readLine()) != null) {
-                String[] parts = line.split("\t"); 
+                String[] parts = line.split("\t");
 
                 if (parts.length == 3) {
                     String code = parts[0].trim();
@@ -211,8 +223,11 @@ public class Server {
 
     /**
      * Récupérer l'objet 'RegistrationForm' envoyé par le client en utilisant
-     * 'objectInputStream', l'enregistrer dans un fichier texte
+     * 'objectInputStream'. 
+     * 
+     * L'enregistrer dans un fichier texte
      * et renvoyer un message de confirmation au client.
+     * 
      * La méthode gére les exceptions si une erreur se produit lors de la lecture de
      * l'objet, l'écriture dans un fichier ou dans le flux de sortie.
      */
