@@ -234,6 +234,33 @@ public class InterfaceClient implements ActionListener {
 
     /**
      * 
+     * Charge la liste des cours disponibles pour une session donnée depuis le
+     * serveur.
+     * 
+     * @param session La session pour laquelle charger les cours.
+     * @return La liste des cours disponibles pour la session donnée.
+     * @throws IOException Si une erreur de communication réseau se produit.
+     */
+    public List<Course> loadCourses(String session) throws IOException {
+        try {
+
+            objectOutputStream.writeObject(Server.LOAD_COMMAND + " " + session);
+            objectOutputStream.flush();
+
+            List<Course> courses = (List<Course>) objectInputStream.readObject();
+
+            return courses;
+
+        } catch (Exception error) {
+            JOptionPane.showMessageDialog(null, "Une erreur s'est produite pendant le chargement des cours.", "Error",
+                    JOptionPane.ERROR_MESSAGE);
+            return null;
+        }
+
+    }
+
+    /**
+     * 
      * Méthode appelée lorsqu'une action est effectuée sur un composant de
      * l'interface
      * graphique.
@@ -243,17 +270,19 @@ public class InterfaceClient implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
 
-        // Si l'utilisateur clique sur le boutter 'Charger'
+        // Si l'utilisateur clique sur le boutton 'Charger'
         if (e.getSource() == chargeButton) {
 
-            System.out.println("Charger pour session: " + choixSession.getSelectedItem().toString());
+            System.out.println("Charger les cours pour la session: " + choixSession.getSelectedItem().toString());
             try {
 
-                // Charge les cours pour la session sélectionnée
+                List<Course> courses = this.loadCourses(choixSession.getSelectedItem().toString());
+
+                this.updateTable(courses);
 
             } catch (Exception error) {
-
-                // Show modal
+                JOptionPane.showMessageDialog(null, "Une erreur s'est produite.", "Error",
+                        JOptionPane.ERROR_MESSAGE);
             }
 
         }
@@ -270,8 +299,6 @@ public class InterfaceClient implements ActionListener {
                         JOptionPane.ERROR_MESSAGE);
 
             } else if (course == null) {
-
-                // show error dialog
                 JOptionPane.showMessageDialog(null, "Veuillez sélectionner un cours.", "Error",
                         JOptionPane.ERROR_MESSAGE);
 
@@ -281,24 +308,53 @@ public class InterfaceClient implements ActionListener {
                         emailText.getText(), matriculeText.getText(),
                         new Course(course.getName(), course.getCode(), sessionActuelle));
                 try {
-                    // Envoie le formulaire d'inscription au serveur
+                    this.registerForCourse(registrationForm);
 
                 } catch (Exception error) {
-                    // show modal
                     JOptionPane.showMessageDialog(null, "Une erreur s'est produite.", "Error",
                             JOptionPane.ERROR_MESSAGE);
 
                 }
 
             }
+        // Si l'utilisateur change la session
         } else if (e.getSource() == choixSession) {
-
-            // On met la string de la session dans une variable pour l'utiliser quand on va
-            // appuyer sur le boutton charger
-
             sessionActuelle = (String) choixSession.getSelectedItem();
 
         }
+
+    }
+
+    /**
+     * 
+     * Envoie une demande d'inscription au serveur pour un étudiant et un cours
+     * donnés.
+     * 
+     * @param registration Le formulaire d'inscription à envoyer.
+     * @throws IOException            Si une erreur de communication réseau se
+     *                                produit.
+     * @throws ClassNotFoundException Si la classe Course est introuvable.
+     */
+
+    public void registerForCourse(RegistrationForm registration) throws IOException, ClassNotFoundException {
+
+        System.out.println("Envoi de la demande d'inscription au serveur...: " +
+                registration.toString());
+
+        objectOutputStream.writeObject(Server.REGISTER_COMMAND);
+        objectOutputStream.flush();
+
+        objectOutputStream.writeObject(registration);
+        objectOutputStream.flush();
+
+        JOptionPane.showMessageDialog(null,
+                "Félicitations! " + prenomText.getText() + " " + nomText.getText()
+                        + "est inscrit(e) avec succès pour le cours "
+                        + registration.getCourse().getCode() + "!",
+                "Success",
+                JOptionPane.INFORMATION_MESSAGE);
+
+        connect();
 
     }
 
@@ -312,15 +368,14 @@ public class InterfaceClient implements ActionListener {
      */
     public void updateTable(List<Course> courses) throws IOException {
 
-        // connect with server for the upcomming network operation
         connect();
 
-        // remove all rows
+        // Supprimer les cours existants dans le tableau
         for (int i = 0; i < tableModel.getRowCount(); i++) {
             tableModel.removeRow(i);
         }
 
-        // add new rows
+        // Ajouter les cours de la session dans le tableau
         for (Course course : courses) {
             Object[] courseData = { course.getCode(), course.getName() };
             tableModel.addRow(courseData);
@@ -339,10 +394,9 @@ public class InterfaceClient implements ActionListener {
             int selectedRow = table.getSelectedRow();
 
             if (selectedRow == -1) {
-                throw new Exception("No row selected");
+                throw new Exception("Action impossible: aucun cours n'est sélectionné.");
             }
 
-            System.out.println("Selected row: " + selectedRow);
             Course course = new Course((String) table.getValueAt(selectedRow, 1),
                     (String) table.getValueAt(selectedRow, 0), sessionActuelle);
             return course;
