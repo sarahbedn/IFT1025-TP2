@@ -1,0 +1,106 @@
+package client;
+
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.Socket;
+import java.util.Scanner;
+
+/**
+ * Une classe représentant un client pour un système d'inscription aux cours.
+ * Ce client fournit des fonctionnalités pour charger des informations sur les
+ * cours
+ * et s'inscrire à des cours spécifiques.
+ */
+public class SimpleClient {
+
+    private Socket socket;
+    private ObjectInputStream objectInputStream;
+    private ObjectOutputStream objectOutputStream;
+
+    /**
+     * Constructeur pour créer un nouveau client en établissant une connexion
+     * avec le serveur via un hôte et un port spécifiques.
+     * 
+     * @param host L'adresse du serveur auquel se connecter.
+     * @param port Le numéro de port pour établir la connexion.
+     * @throws IOException Si une erreur se produit lors de la connexion au serveur.
+     */
+    public SimpleClient(String host, int port) throws IOException {
+        socket = new Socket(host, port);
+        objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
+        objectInputStream = new ObjectInputStream(socket.getInputStream());
+    }
+
+    public static void main(String[] args) throws ClassNotFoundException {
+        try {
+            SimpleClient client = new SimpleClient("localhost", 6000);
+            Scanner scanner = new Scanner(System.in);
+
+            System.out.println("*** Bienvenue au portail d'inscription de cours de l'UDEM ***");
+
+            System.out
+                    .println("Veuillez choisir la session pour laquelle vous voulez consulter la liste des cours:");
+            System.out.println("1. Automne");
+            System.out.println("2. Hiver");
+            System.out.println("3. Ete");
+            System.out.print("› Choix: ");
+
+            int choice = scanner.nextInt();
+            String session = "";
+
+            if (choice == 1) {
+                session = "Automne";
+            } else if (choice == 2) {
+                session = "Hiver";
+            } else if (choice == 3) {
+                session = "Ete";
+            } else {
+                System.out.println("Choix non valide");
+                scanner.close();
+                return;
+            }
+
+            System.out.println("1. Consulter les cours offerts pour une autre session");
+            System.out.println("2. Inscription à un cours");
+            System.out.print("› Choix: ");
+
+            int actionChoice = scanner.nextInt();
+            scanner.nextLine();
+
+            if (actionChoice == 2) {
+                System.out.print("Veuillez saisir votre prénom: ");
+                String firstName = scanner.nextLine();
+
+                System.out.print("Veuillez saisir votre nom: ");
+                String lastName = scanner.nextLine();
+
+                System.out.print("Veuillez saisir votre mail: ");
+                String email = scanner.nextLine();
+
+                System.out.print("Veuillez saisir votre matricule: ");
+                String matricule = scanner.nextLine();
+
+                System.out.print("Veuillez saisir le code du cours: ");
+                String courseCode = scanner.nextLine();
+
+            }
+            scanner.close();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Ferme la connexion avec le serveur.
+     * 
+     * @throws IOException Si une erreur se produit lors de la fermeture de la
+     *                     connexion.
+     */
+    public void disconnect() throws IOException {
+        objectInputStream.close();
+        objectOutputStream.close();
+        socket.close();
+    }
+}
