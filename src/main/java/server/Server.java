@@ -10,6 +10,15 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+/**
+
+La classe Server fournit une implémentation d'un serveur pour communiquer avec des clients.
+
+Le serveur est capable de traiter des commandes pour enregistrer des formulaires d'inscription et charger des informations sur les cours d'une session spécifique.
+
+Il utilise des {@code EventHandler} pour gérer les événements et communiquer avec les clients.
+*/
+
 public class Server {
 
     public final static String REGISTER_COMMAND = "INSCRIRE";
@@ -20,22 +29,51 @@ public class Server {
     private ObjectOutputStream objectOutputStream;
     private final ArrayList<EventHandler> handlers;
 
+    /**
+     * Constructeur de la classe {@code Server}.
+     * Crée un nouveau serveur en écoutant sur le port spécifié et initialise les
+     * gestionnaires d'événements.
+     *
+     * @param port Le numéro de port sur lequel le serveur doit écouter
+     * @throws IOException Si une erreur se produit lors de la création du
+     *                     {@code ServerSocket}
+     */
     public Server(int port) throws IOException {
         this.server = new ServerSocket(port, 1);
         this.handlers = new ArrayList<EventHandler>();
         this.addEventHandler(this::handleEvents);
     }
 
+    /**
+     * Ajoute un nouvel {@code EventHandler} à la liste des gestionnaires
+     * d'événements.
+     *
+     * @param h L'instance de l'{@code EventHandler} à ajouter
+     */
     public void addEventHandler(EventHandler h) {
         this.handlers.add(h);
     }
 
+    /**
+     * Avertit tous les gestionnaires d'événements de la réception d'une commande et
+     * de son argument.
+     *
+     * @param cmd La commande reçue
+     * @param arg L'argument de la commande
+     */
     private void alertHandlers(String cmd, String arg) {
         for (EventHandler h : this.handlers) {
             h.handle(cmd, arg);
         }
     }
 
+    /**
+     * Méthode principale pour démarrer et exécuter le serveur en continu.
+     * Cette méthode est bloquante et accepte les connexions entrantes des clients,
+     * les écoute
+     * et gère les commandes reçues avant de se déconnecter et d'attendre la
+     * prochaine connexion.
+     */
     public void run() {
         while (true) {
             try {
@@ -52,6 +90,14 @@ public class Server {
         }
     }
 
+    /**
+     * Écoute les commandes envoyées par le client et les traite en conséquence.
+     * Cette méthode est bloquante et attend la réception d'une commande du client.
+     *
+     * @throws IOException            Si une erreur se produit lors de la lecture de
+     *                                l'objet
+     * @throws ClassNotFoundException Si la classe de l'objet reçu n'est pas trouvée
+     */
     public void listen() throws IOException, ClassNotFoundException {
         String line;
         if ((line = this.objectInputStream.readObject().toString()) != null) {
@@ -62,6 +108,13 @@ public class Server {
         }
     }
 
+    /**
+     * Traite la ligne de commande reçue du client en la divisant en une commande et
+     * un argument.
+     *
+     * @param line La ligne de commande reçue du client
+     * @return Une paire contenant la commande et l'argument extraits de la ligne
+     */
     public Pair<String, String> processCommandLine(String line) {
         String[] parts = line.split(" ");
         String cmd = parts[0];
@@ -69,12 +122,29 @@ public class Server {
         return new Pair<>(cmd, args);
     }
 
+    /**
+     * 
+     * Ferme les flux d'entrée et de sortie et déconnecte le client.
+     * 
+     * @throws IOException Si une erreur se produit lors de la fermeture des flux ou
+     *                     de la déconnexion du client
+     */
     public void disconnect() throws IOException {
         objectOutputStream.close();
         objectInputStream.close();
         client.close();
     }
 
+    /**
+     * 
+     * Gère les événements en fonction de la commande reçue.
+     * Cette méthode est appelée par {@code alertHandlers} pour chaque commande
+     * reçue.
+     * 
+     * @param cmd La commande reçue
+     * @param arg L'argument associé à la commande
+     * @throws IOException
+     */
     public void handleEvents(String cmd, String arg) {
         if (cmd.equals(REGISTER_COMMAND)) {
             handleRegistration();
